@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Optik — TYT · AYT · KPSS Çalışma Merkezi</title>
+<meta name="description" content="Sınırsız soru üreten, konu anlatımı ve yapay zekâ destekli TYT, AYT ve KPSS çalışma sitesi.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="top">
+  <a class="brand" href="#/" aria-label="Ana sayfa">
+    <span class="brand-bubble">O</span>
+    <span class="brand-text">Optik<small>çalışma merkezi</small></span>
+  </a>
+
+  <nav class="nav" id="nav">
+    <a href="#/" data-route="home">Panel</a>
+    <a href="#/konu" data-route="konu">Konu anlatımı</a>
+    <a href="#/test" data-route="test">Soru çöz</a>
+    <a href="#/deneme" data-route="deneme">Deneme</a>
+    <a href="#/defter" data-route="defter">Yanlış defteri</a>
+    <a href="#/ai" data-route="ai">Yapay zekâ</a>
+    <a href="#/istatistik" data-route="istatistik">İstatistik</a>
+  </nav>
+
+  <div class="top-right">
+    <span class="streak" id="streakBadge" title="Üst üste çalışılan gün">0 gün</span>
+    <button class="icon-btn" id="btnSettings" aria-label="Ayarlar">Ayarlar</button>
+    <button class="icon-btn menu-btn" id="btnMenu" aria-label="Menü">Menü</button>
+  </div>
+</header>
+
+<main id="app">
+
+  <!-- ============ PANEL ============ -->
+  <section class="view" data-view="home">
+    <div class="hero">
+      <div class="hero-sheet" aria-hidden="true">
+        <div class="sheet-head">CEVAP KÂĞIDI</div>
+        <div class="sheet-rows" id="heroSheet"></div>
+      </div>
+      <div class="hero-copy">
+        <h1>Soruların bitmez.<br>Her tıklamada yenisi üretilir.</h1>
+        <p>TYT, AYT ve KPSS için konu anlatımı, sınırsız soru bankası, deneme modu ve takıldığın yeri anlatan bir yapay zekâ asistanı. Hepsi tek yerde, tamamen tarayıcında çalışır.</p>
+        <div class="hero-actions">
+          <button class="btn primary" data-go="#/test">Hemen soru çözmeye başla</button>
+          <button class="btn ghost" data-go="#/konu">Konu anlatımına git</button>
+        </div>
+        <div class="hero-stats">
+          <div><b id="hsSolved">0</b><span>çözülen soru</span></div>
+          <div><b id="hsAcc">%0</b><span>doğru oranı</span></div>
+          <div><b id="hsToday">0</b><span>bugün</span></div>
+        </div>
+      </div>
+    </div>
+
+    <h2 class="sec-title">Bugün nereden başlasan iyi olur</h2>
+    <div class="grid" id="suggestGrid"></div>
+
+    <h2 class="sec-title">Sınavlar</h2>
+    <div class="grid exams" id="examGrid"></div>
+
+    <div class="panel pomo">
+      <div>
+        <h3>Pomodoro</h3>
+        <p class="muted">25 dakika çalış, 5 dakika dinlen. Sayaç sen sekme değiştirsen de devam eder.</p>
+      </div>
+      <div class="pomo-clock">
+        <span id="pomoTime">25:00</span>
+        <div class="pomo-btns">
+          <button class="btn small" id="pomoStart">Başlat</button>
+          <button class="btn small ghost" id="pomoReset">Sıfırla</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ KONU ANLATIMI ============ -->
+  <section class="view" data-view="konu">
+    <div class="view-head">
+      <h1>Konu anlatımı</h1>
+      <p class="muted">Kısa, sınav odaklı özetler. Her konunun altındaki düğmeyle o konudan hemen soru çözebilirsin.</p>
+    </div>
+    <div class="split">
+      <aside class="side">
+        <input class="input" id="konuSearch" placeholder="Konu ara: türev, paragraf, Osmanlı…">
+        <div id="konuList" class="konu-list"></div>
+      </aside>
+      <article class="reader" id="konuReader">
+        <p class="empty">Soldan bir konu seç. Anlatım burada açılır.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- ============ SORU ÇÖZ ============ -->
+  <section class="view" data-view="test">
+    <div class="view-head">
+      <h1>Soru çöz</h1>
+      <p class="muted">Ders ve konu seç, kaç soru istediğini söyle. Sorular her seferinde yeniden üretilir; aynı testi iki kez görmezsin.</p>
+    </div>
+
+    <div class="panel setup" id="testSetup">
+      <div class="field">
+        <label for="selExam">Sınav</label>
+        <select class="input" id="selExam"></select>
+      </div>
+      <div class="field">
+        <label for="selDers">Ders</label>
+        <select class="input" id="selDers"></select>
+      </div>
+      <div class="field">
+        <label for="selKonu">Konu</label>
+        <select class="input" id="selKonu"></select>
+      </div>
+      <div class="field">
+        <label for="selCount">Soru sayısı</label>
+        <select class="input" id="selCount">
+          <option>5</option><option selected>10</option><option>20</option><option>30</option><option>40</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="selMode">Mod</label>
+        <select class="input" id="selMode">
+          <option value="instant">Anında cevap göster</option>
+          <option value="end">Sonda göster (sınav gibi)</option>
+        </select>
+      </div>
+      <button class="btn primary" id="btnStartTest">Testi başlat</button>
+    </div>
+
+    <div id="quizHost"></div>
+  </section>
+
+  <!-- ============ DENEME ============ -->
+  <section class="view" data-view="deneme">
+    <div class="view-head">
+      <h1>Deneme sınavı</h1>
+      <p class="muted">Gerçek oturum düzeni, süre ve net hesabı. Süre bitince sınav kendiliğinden toplanır.</p>
+    </div>
+    <div class="grid" id="denemeGrid"></div>
+    <div id="denemeHost"></div>
+  </section>
+
+  <!-- ============ YANLIŞ DEFTERİ ============ -->
+  <section class="view" data-view="defter">
+    <div class="view-head">
+      <h1>Yanlış defteri</h1>
+      <p class="muted">Yanlış yaptığın her soru çözümüyle birlikte buraya düşer. Bir soruyu sonradan doğru çözdüğünde defterden kendiliğinden silinir.</p>
+    </div>
+    <div class="toolbar">
+      <button class="btn" id="btnRetryWrong">Yanlışlardan test kur</button>
+      <button class="btn ghost" id="btnClearWrong">Defteri temizle</button>
+    </div>
+    <div id="wrongList" class="wrong-list"></div>
+  </section>
+
+  <!-- ============ YAPAY ZEKÂ ============ -->
+  <section class="view" data-view="ai">
+    <div class="view-head">
+      <h1>Yapay zekâ asistanı</h1>
+      <p class="muted">Anlamadığın konuyu anlattırabilir, sorunun çözümünü adım adım isteyebilir, istediğin konudan yeni sorular ürettirebilirsin.</p>
+    </div>
+
+    <div class="panel ai-key" id="aiKeyPanel">
+      <h3>Önce bir anahtar bağla</h3>
+      <p class="muted">Yapay zekâ kısmı senin kendi API anahtarınla çalışır. Anahtar yalnızca bu tarayıcıda saklanır, hiçbir yere gönderilmez. <b>Anahtarını GitHub'a yüklediğin dosyaların içine yazma</b> — siteyi açan herkes görür.</p>
+      <div class="ai-key-row">
+        <select class="input" id="aiProvider">
+          <option value="gemini">Google Gemini (ücretsiz kotası var)</option>
+          <option value="openai">OpenAI</option>
+          <option value="openrouter">OpenRouter</option>
+        </select>
+        <input class="input" id="aiKey" type="password" placeholder="API anahtarını yapıştır">
+        <button class="btn primary" id="btnSaveKey">Kaydet</button>
+      </div>
+      <p class="hint" id="aiKeyHint"></p>
+    </div>
+
+    <div class="ai-quick">
+      <button class="chip" data-prompt="Türev alma kurallarını en sade haliyle, örnekli anlat.">Türevi anlat</button>
+      <button class="chip" data-prompt="Paragraf sorularında ana fikir bulmanın pratik yollarını anlat.">Paragraf taktiği</button>
+      <button class="chip" data-prompt="KPSS Vatandaşlık için en çok çıkan 15 bilgiyi listele.">KPSS vatandaşlık özeti</button>
+      <button class="chip" data-prompt="Bana 11. sınıftan mezun olana kadar haftalık TYT-AYT çalışma programı çıkar.">Çalışma programı kur</button>
+    </div>
+
+    <div class="chat" id="chat"></div>
+    <div class="composer">
+      <textarea id="aiInput" class="input" rows="2" placeholder="Sorunu yaz… (Enter gönderir, Shift+Enter alt satır)"></textarea>
+      <button class="btn primary" id="btnAsk">Gönder</button>
+    </div>
+  </section>
+
+  <!-- ============ İSTATİSTİK ============ -->
+  <section class="view" data-view="istatistik">
+    <div class="view-head">
+      <h1>İstatistik</h1>
+      <p class="muted">Hangi derste iyisin, nerede kan kaybediyorsun — burada görünür.</p>
+    </div>
+    <div class="grid stat-cards" id="statCards"></div>
+    <div class="panel">
+      <h3>Son 14 gün</h3>
+      <div class="bars" id="dayBars"></div>
+    </div>
+    <div class="panel">
+      <h3>Derslere göre başarı</h3>
+      <div class="lanes" id="dersLanes"></div>
+    </div>
+    <div class="toolbar">
+      <button class="btn ghost" id="btnReset">Tüm ilerlemeyi sıfırla</button>
+    </div>
+  </section>
+</main>
+
+<div class="modal" id="settingsModal" hidden>
+  <div class="modal-box">
+    <h3>Ayarlar</h3>
+    <label class="row"><input type="checkbox" id="setSound"> Doğru/yanlış sesi</label>
+    <label class="row"><input type="checkbox" id="setTimerHide"> Testte süreyi gizle</label>
+    <label class="row"><input type="checkbox" id="setLight"> Açık tema</label>
+    <div class="row">
+      <span>Verilerin tarayıcında duruyor.</span>
+      <button class="btn small ghost" id="btnExport">Yedek al (.json)</button>
+    </div>
+    <button class="btn primary" id="btnCloseSettings">Kapat</button>
+  </div>
+</div>
+
+<footer class="foot">
+  <span>Optik — kendi çalışma sitem.</span>
+  <span class="muted">Veriler cihazında saklanır · Sorular tarayıcıda üretilir</span>
+</footer>
+
+<script src="script.js"></script>
+</body>
+</html>
