@@ -59,14 +59,15 @@ const varsayilan = {
   wrong: [],
   streak: { last: '', count: 0 },
   ai: { provider: 'gemini', key: '' },
-  settings: { sound: true, hideTimer: false, light: false }
+  okunan: [],
+  settings: { sound: true, hideTimer: false, light: false, hedef: 30, sinavTarihi: '2027-06-19' }
 };
 let S = load();
 
 function load() {
   try {
     const raw = JSON.parse(localStorage.getItem(KEY) || '{}');
-    return { ...varsayilan, ...raw, stats: { ...varsayilan.stats, ...(raw.stats || {}) }, settings: { ...varsayilan.settings, ...(raw.settings || {}) }, ai: { ...varsayilan.ai, ...(raw.ai || {}) } };
+    return { ...varsayilan, ...raw, okunan: raw.okunan || [], stats: { ...varsayilan.stats, ...(raw.stats || {}) }, settings: { ...varsayilan.settings, ...(raw.settings || {}) }, ai: { ...varsayilan.ai, ...(raw.ai || {}) } };
   } catch { return structuredClone(varsayilan); }
 }
 function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch { } }
@@ -1149,7 +1150,7 @@ mat: { ad: 'Matematik', sinavlar: ['tyt', 'kpss'], konular: {
   olasilik: { ad: 'Permütasyon - olasılık', gen: [
     () => { const n = R(5, 12); return Q(`${n} kişilik bir gruptan 2 kişilik komisyon kaç farklı şekilde seçilir?`, C(n, 2), numOpts(C(n, 2), 10), `C(${n}, 2) = ${n}·${n - 1}/2 = ${C(n, 2)}`); },
     () => { const n = R(4, 7); return Q(`${n} farklı kitap bir rafa kaç farklı şekilde dizilebilir?`, [1, 1, 2, 6, 24, 120, 720, 5040][n], numOpts([1, 1, 2, 6, 24, 120, 720, 5040][n], 40), `${n}! = ${[1, 1, 2, 6, 24, 120, 720, 5040][n]}`); },
-    () => { const k = R(2, 6); let b = R(2, 6); if (b === k) b = k + 2; return Q(`İçinde ${k} kırmızı ve ${b} beyaz top bulunan torbadan rastgele çekilen bir topun kırmızı olma olasılığı kaçtır?`, frac(k, k + b), [frac(b, k + b), frac(k, b), frac(1, k + b), frac(k + b, k)], `İstenen/tüm = ${k}/${k + b} = ${frac(k, k + b)}`); },
+    () => { const k = R(2, 6); let b = R(2, 6); if (b === k) b = k + 2; return Q(`İçinde ${k} kırmızı ve ${b} beyaz top bulunan torbadan rastgele çekilen bir topun kırmızı olma olasılığı kaçtır?`, frac(k, k + b), [frac(b, k + b), frac(k, b), frac(1, k + b), frac(k + 1, k + b), frac(k, k + b + 2)], `İstenen/tüm = ${k}/${k + b} = ${frac(k, k + b)}`); },
     () => { const hedef = R(2, 12); const say = [0, 0, 1, 2, 3, 4, 5, 6, 5, 4, 3, 2, 1][hedef]; return Q(`İki zar atıldığında üste gelen sayıların toplamının ${hedef} olma olasılığı kaçtır?`, frac(say, 36), [1, -1, 2, -2, 3, 4, -3, 5].map(dx => say + dx).filter(x => x >= 1 && x <= 36).map(x => frac(x, 36)).slice(0, 4), `Toplam ${hedef} veren ${say} durum vardır, tüm durum 36 → ${frac(say, 36)}`); }
   ]},
   dizi: { ad: 'Diziler', gen: [
@@ -1450,7 +1451,7 @@ function soruCiz() {
         }).join('')}
       </div>
       ${acik ? `<div class="sol"><b>Çözüm:</b>\n${esc(s.sol)}</div>` : ''}
-      <div class="q-actions">
+      <div class="q-actions" id="qzActions">
         ${QZ.i > 0 && QZ.mode === 'end' ? '<button class="btn ghost" id="qzPrev">Önceki</button>' : ''}
         <button class="btn primary" id="qzNext">${QZ.i === QZ.list.length - 1 ? 'Testi bitir' : 'Sonraki soru'}</button>
         ${acik ? '<button class="btn ghost" id="qzAsk">Yapay zekâya sor</button>' : ''}
@@ -1462,6 +1463,10 @@ function soruCiz() {
   const prev = $('#qzPrev', host); if (prev) prev.onclick = () => { QZ.i--; soruCiz(); };
   $('#qzQuit', host).onclick = () => { if (confirm('Test bitirilsin mi?')) testBitir(); };
   const ask = $('#qzAsk', host); if (ask) ask.onclick = () => soruyuSor(s);
+  const ip = document.createElement('p');
+  ip.className = 'kbd-hint';
+  ip.innerHTML = 'Kısayol: <span class="kbd">A</span> <span class="kbd">B</span> <span class="kbd">C</span> <span class="kbd">D</span> <span class="kbd">E</span> ile işaretle, <span class="kbd">Enter</span> ile ilerle.';
+  $('.q-card', host).appendChild(ip);
 }
 
 function cevapla(i) {
@@ -1526,8 +1531,10 @@ function cizPanel() {
   const st = S.stats;
   $('#hsSolved').textContent = st.total;
   $('#hsAcc').textContent = '%' + (st.total ? Math.round(st.correct / st.total * 100) : 0);
-  $('#hsToday').textContent = (st.byDay[bugun()] || { t: 0 }).t;
+  const bugunku = (st.byDay[bugun()] || { t: 0 }).t;
+  $('#hsToday').textContent = bugunku;
   seriYaz();
+  cizHedef(bugunku, st.total);
 
   // cevap kâğıdı süsü
   const sheet = $('#heroSheet');
@@ -1563,6 +1570,24 @@ function cizPanel() {
   $$('#examGrid .card').forEach(b => b.onclick = () => { $('#selExam').value = b.dataset.k; dersDoldur(); location.hash = '#/test'; });
 }
 
+function cizHedef(bugunku, toplam) {
+  const h = S.settings.hedef || 30;
+  const y = Math.min(100, Math.round(bugunku / h * 100));
+  const g = $('#goalNow'); if (!g) return;
+  g.textContent = bugunku;
+  $('#goalBar').style.width = y + '%';
+  $('#goalText').textContent = bugunku >= h ? `Hedef tamam. Bugün ${bugunku} soru çözdün.` : `Hedef: ${h} soru · ${h - bugunku} tane kaldı`;
+  $('#allTime').textContent = toplam;
+  $('#streakMini').textContent = S.streak.count || 0;
+
+  const t = S.settings.sinavTarihi;
+  const kalan = t ? Math.ceil((new Date(t + 'T00:00:00') - new Date(bugun() + 'T00:00:00')) / 864e5) : null;
+  $('#ctDays').textContent = kalan === null ? '—' : (kalan > 0 ? kalan : 'Bugün!');
+  $('#ctText').textContent = kalan === null ? 'Ayarlardan sınav tarihi seç'
+    : kalan > 0 ? `gün kaldı · bu tempoyla ${((S.settings.hedef || 30) * kalan).toLocaleString('tr-TR')} soru daha çözersin`
+    : 'Sınav tarihi geçti, ayarlardan güncelle';
+}
+
 function seriYaz() { $('#streakBadge').textContent = `${S.streak.count || 0} gün`; }
 
 function hizliTest(sinav, ders, konu, adet) {
@@ -1585,19 +1610,23 @@ function cizKonuListesi(filtre = '') {
     .forEach(a => (gruplar[a.grup] = gruplar[a.grup] || []).push(a));
   const el = $('#konuList');
   el.innerHTML = Object.entries(gruplar).map(([g, list]) => `<div class="konu-group"><b>${esc(g)}</b>
-    ${list.map(a => `<button data-id="${ANLATIM.indexOf(a)}">${esc(a.ad)}</button>`).join('')}</div>`).join('')
+    ${list.map(a => `<button data-id="${ANLATIM.indexOf(a)}">${S.okunan.includes(a.konu + '.' + a.ders) ? '<span class="done">✓</span>' : ''}${esc(a.ad)}</button>`).join('')}</div>`).join('')
     || '<p class="muted">Eşleşen konu yok.</p>';
   $$('#konuList button').forEach(b => b.onclick = () => konuAc(+b.dataset.id));
 }
 
 function konuAc(i) {
   const a = ANLATIM[i];
+  const isaret = a.konu + '.' + a.ders;
+  if (!S.okunan.includes(isaret)) { S.okunan.push(isaret); save(); }
   $$('#konuList button').forEach(b => b.classList.toggle('on', +b.dataset.id === i));
   const varMi = DERSLER[a.ders] && DERSLER[a.ders].konular[a.konu];
   $('#konuReader').innerHTML = a.html + `<div class="reader-actions">
     ${varMi ? `<button class="btn primary" id="krTest">Bu konudan 10 soru çöz</button>` : ''}
     <button class="btn ghost" id="krAi">Yapay zekâya anlattır</button></div>`;
   $('#konuReader').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  cizKonuListesi($('#konuSearch').value);
+  $$('#konuList button').forEach(b => b.classList.toggle('on', +b.dataset.id === i));
   if (varMi) $('#krTest').onclick = () => {
     const sinav = DERSLER[a.ders].sinavlar[0];
     hizliTest(sinav, a.ders, a.konu, 10);
@@ -1799,9 +1828,21 @@ function init() {
 
   // ayarlar
   const mdl = $('#settingsModal');
-  $('#btnSettings').onclick = () => { mdl.hidden = false; $('#setSound').checked = S.settings.sound; $('#setTimerHide').checked = S.settings.hideTimer; $('#setLight').checked = S.settings.light; };
-  $('#btnCloseSettings').onclick = () => mdl.hidden = true;
+  $('#btnSettings').onclick = () => {
+    mdl.hidden = false;
+    $('#setSound').checked = S.settings.sound;
+    $('#setTimerHide').checked = S.settings.hideTimer;
+    $('#setLight').checked = S.settings.light;
+    $('#setGoal').value = S.settings.hedef || 30;
+    $('#setDate').value = S.settings.sinavTarihi || '';
+  };
+  const kapat = () => { mdl.hidden = true; };
+  $('#btnCloseSettings').onclick = kapat;
+  $('#btnX').onclick = kapat;
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') kapat(); });
   mdl.onclick = e => { if (e.target === mdl) mdl.hidden = true; };
+  $('#setGoal').onchange = e => { S.settings.hedef = Math.max(5, +e.target.value || 30); save(); cizPanel(); };
+  $('#setDate').onchange = e => { S.settings.sinavTarihi = e.target.value; save(); cizPanel(); };
   $('#setSound').onchange = e => { S.settings.sound = e.target.checked; save(); };
   $('#setTimerHide').onchange = e => { S.settings.hideTimer = e.target.checked; save(); };
   $('#setLight').onchange = e => { S.settings.light = e.target.checked; document.body.classList.toggle('light', e.target.checked); save(); };
@@ -1815,6 +1856,16 @@ function init() {
     if (!confirm('Bütün istatistikler, seri ve yanlış defteri silinecek. Emin misin?')) return;
     S = structuredClone(varsayilan); save(); cizIstatistik(); cizPanel(); cizDefter();
   };
+
+  document.addEventListener('keydown', e => {
+    if (!QZ || !$(QZ.host) || !$(QZ.host).innerHTML) return;
+    const t = e.target.tagName;
+    if (t === 'INPUT' || t === 'TEXTAREA' || t === 'SELECT') return;
+    const k = e.key.toUpperCase();
+    const idx = 'ABCDE'.indexOf(k);
+    if (idx > -1 && QZ.list[QZ.i]) { e.preventDefault(); cevapla(idx); }
+    else if (e.key === 'Enter') { const n = $('#qzNext'); if (n) { e.preventDefault(); n.click(); } }
+  });
 
   window.addEventListener('hashchange', router);
   router();
