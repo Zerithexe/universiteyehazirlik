@@ -59,6 +59,25 @@
       </div>
     </div>
 
+    <div class="top-cards">
+      <div class="mini">
+        <div class="lbl">Sınava kalan</div>
+        <div class="big2" id="ctDays">—</div>
+        <div class="sub" id="ctText">Tarihi ayarlardan değiştirebilirsin</div>
+      </div>
+      <div class="mini">
+        <div class="lbl">Günlük hedef</div>
+        <div class="big2" id="goalNow">0</div>
+        <div class="goal-track"><i id="goalBar" style="width:0%"></i></div>
+        <div class="sub" id="goalText">Hedef: 30 soru</div>
+      </div>
+      <div class="mini">
+        <div class="lbl">Toplam çalışma</div>
+        <div class="big2" id="allTime">0</div>
+        <div class="sub">çözülen soru · seri <span id="streakMini">0</span> gün</div>
+      </div>
+    </div>
+
     <h2 class="sec-title">Bugün nereden başlasan iyi olur</h2>
     <div class="grid" id="suggestGrid"></div>
 
@@ -218,7 +237,10 @@
 
 <div class="modal" id="settingsModal" hidden>
   <div class="modal-box">
+    <button class="close-x" id="btnX" aria-label="Kapat">×</button>
     <h3>Ayarlar</h3>
+    <label class="row">Günlük soru hedefi <input class="input" id="setGoal" type="number" min="5" max="500" style="width:90px"></label>
+    <label class="row">Sınav tarihi <input class="input" id="setDate" type="date" style="width:170px"></label>
     <label class="row"><input type="checkbox" id="setSound"> Doğru/yanlış sesi</label>
     <label class="row"><input type="checkbox" id="setTimerHide"> Testte süreyi gizle</label>
     <label class="row"><input type="checkbox" id="setLight"> Açık tema</label>
