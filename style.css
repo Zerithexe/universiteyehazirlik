@@ -44,6 +44,8 @@ body{
     radial-gradient(700px 420px at 5% 0%, rgba(245,183,51,.09), transparent 55%),
     var(--ink);
   color:var(--text);
+  min-height:100vh;
+  background-attachment:fixed;
   font-family:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
   font-size:16px;
   line-height:1.6;
@@ -305,8 +307,11 @@ select.input{cursor:pointer}
 .lane .pct{font-family:"JetBrains Mono",monospace;color:var(--muted);text-align:right}
 
 /* ---------- modal ---------- */
-.modal{position:fixed;inset:0;background:rgba(5,9,18,.72);display:grid;place-items:center;z-index:60;padding:16px}
-.modal-box{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:24px;width:min(440px,100%)}
+.modal{position:fixed;inset:0;background:rgba(5,9,18,.72);display:grid;place-items:center;z-index:60;padding:16px;overflow:auto}
+.modal[hidden]{display:none}
+[hidden]{display:none!important}
+.modal-box .close-x{position:absolute;top:10px;right:12px;background:none;border:0;color:var(--muted);font-size:1.4rem;cursor:pointer;line-height:1}
+.modal-box{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:24px;width:min(440px,100%)}
 .modal .row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);font-size:.9rem}
 .modal .btn.primary{width:100%;margin-top:16px}
 
@@ -315,6 +320,18 @@ select.input{cursor:pointer}
   display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;
   font-size:.8rem;color:var(--muted);border-top:1px solid var(--line);
 }
+
+/* ---------- geri sayım & günlük hedef ---------- */
+.top-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin:26px 0 6px}
+.mini{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px}
+.mini .lbl{font-size:.74rem;color:var(--muted);letter-spacing:.05em;text-transform:uppercase}
+.mini .big2{font-family:"Bricolage Grotesque";font-size:2.3rem;color:var(--amber);line-height:1.1}
+.mini .sub{font-size:.82rem;color:var(--muted)}
+.goal-track{height:10px;background:var(--ink-2);border-radius:99px;overflow:hidden;margin:10px 0 6px}
+.goal-track i{display:block;height:100%;background:linear-gradient(90deg,var(--violet),var(--amber));transition:width .4s ease}
+.konu-group button .done{color:var(--green);font-size:.78rem;margin-right:5px}
+.kbd-hint{font-size:.76rem;color:var(--muted);margin-top:14px}
+.kbd{font-family:"JetBrains Mono",monospace;border:1px solid var(--line);border-radius:5px;padding:1px 6px;font-size:.72rem}
 
 /* ---------- mobil ---------- */
 @media (max-width:900px){
@@ -326,7 +343,16 @@ select.input{cursor:pointer}
   .ai-key-row{grid-template-columns:1fr}
 }
 @media (max-width:720px){
+  main{padding-top:18px}
   .menu-btn{display:block}
+  .btn{padding:13px 18px}
+  .opt{padding:14px 14px;font-size:1rem}
+  .q-text{font-size:1.04rem}
+  .hero-actions .btn,.setup .btn{width:100%}
+  .setup{grid-template-columns:1fr 1fr}
+  .setup .field:last-of-type,.setup .btn{grid-column:1 / -1}
+  .composer{grid-template-columns:1fr}
+  .top-cards{grid-template-columns:1fr}
   .nav{
     display:none;position:absolute;top:100%;left:0;right:0;
     flex-direction:column;background:var(--panel);border-bottom:1px solid var(--line);padding:10px;
@@ -336,4 +362,11 @@ select.input{cursor:pointer}
   .msg{max-width:100%}
   .quiz-bar{position:static}
   .lane{grid-template-columns:90px 1fr 46px}
+  .foot{flex-direction:column;gap:6px}
+  .modal-box{padding:20px 18px}
+}
+@media (max-width:420px){
+  .brand-text small{display:none}
+  .hero-stats{gap:16px}
+  .bars{height:100px}
 }
